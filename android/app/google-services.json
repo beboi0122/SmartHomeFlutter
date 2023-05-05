@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "137357279242",
+    "project_id": "smarthome-52960",
+    "storage_bucket": "smarthome-52960.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:137357279242:android:4c4782e82482d052111ff3",
+        "android_client_info": {
+          "package_name": "hit.bme.hu.smart_home_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "137357279242-dk01152pru3a734hf96nkntpk2e3c176.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3LThKXKRCIBOY6sfmFWvlmLu8f-graQI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "137357279242-dk01152pru3a734hf96nkntpk2e3c176.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "137357279242-u3jme8ls098almrac35r1u04mln10age.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "hit.bme.hu.smartHomeFlutter"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
