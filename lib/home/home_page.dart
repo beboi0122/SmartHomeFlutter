@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_home_flutter/home/alarm_system_widget.dart';
+import 'package:smart_home_flutter/home/temperature_control_widget.dart';
 import 'package:smart_home_flutter/services/auth.dart';
 import 'package:smart_home_flutter/services/database.dart';
 import 'room_card_widget.dart';
@@ -7,9 +10,13 @@ import 'dart:convert';
 class HomePage extends StatefulWidget {
   final AuthSercice _auth;
   late DatabaseService databaseService;
+  late final Stream<QuerySnapshot> _statusStream;
+  late Map state;
   Map? smart_home_config;
   HomePage(this._auth, {super.key}) {
     databaseService = DatabaseService(uid: _auth.currentUser?.uid);
+    databaseService = DatabaseService(uid: _auth.currentUser?.uid);
+    _statusStream = databaseService.stateCollection.snapshots();
   }
 
   @override
@@ -17,19 +24,48 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Widget> wisgets = <Widget>[];
+  List<Widget> widgets = <Widget>[];
 
   Future<Map> lodadData() async {
     var json = await widget.databaseService.getConfig();
     return jsonDecode(json["config"]);
   }
 
-  loadListWidgets() {
-    wisgets = [];
+  loadListWidgets(double width) {
+    widgets = [];
+
+    if (widget.state["state"].containsKey("alarm_system")) {
+      widgets.add(AlarmSystemWidget(
+        state: widget.state,
+        databaseService: widget.databaseService,
+      ));
+    }
+
+    widgets.add(TemperatureControl(
+      state: widget.state,
+      databaseService: widget.databaseService,
+    ));
+
+    widgets.add(Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "Rooms",
+            style: TextStyle(
+              fontSize: 20 * width * 0.005,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        ],
+      ),
+    ));
+
     List roomKeys = widget.smart_home_config!["rooms"].keys.toList();
 
     for (var i = 0; i < (roomKeys.length / 2).ceil(); i++) {
-      wisgets.add(
+      widgets.add(
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -73,13 +109,8 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            ElevatedButton(
-                              onPressed: () async {
-                                print(widget.smart_home_config);
-                              },
-                              child: Text("Test"),
-                            ),
                             IconButton(
+                              iconSize: 8 * height * 0.005,
                               onPressed: () {
                                 widget._auth.signOut();
                               },
@@ -121,9 +152,33 @@ class _HomePageState extends State<HomePage> {
                               if (snapshot.hasData) {
                                 widget.smart_home_config =
                                     snapshot.data!["smart_home_config"];
-                                loadListWidgets();
-                                return ListView(
-                                  children: wisgets,
+                                return StreamBuilder<QuerySnapshot>(
+                                  stream: widget._statusStream,
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                                    if (snapshot.hasError) {
+                                      return const Text('Something went wrong');
+                                    }
+
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                    widget.state = jsonDecode(snapshot
+                                        .data!.docs
+                                        .map((DocumentSnapshot document) {
+                                      return (document.data()!
+                                          as Map<String, dynamic>)["state"];
+                                    }).first);
+                                    print("widget.state");
+                                    loadListWidgets(width);
+
+                                    return ListView(
+                                      children: widgets,
+                                    );
+                                  },
                                 );
                               } else {
                                 return const Center(

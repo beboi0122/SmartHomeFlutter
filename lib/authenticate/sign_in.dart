@@ -61,6 +61,7 @@ class _SignInState extends State<SignIn> {
                               50,
                             ),
                             child: TextFormField(
+                              keyboardType: TextInputType.emailAddress,
                               autocorrect: false,
                               decoration: InputDecoration(
                                 border: const UnderlineInputBorder(),

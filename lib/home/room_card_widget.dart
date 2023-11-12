@@ -31,15 +31,15 @@ class FilledCardExample extends StatelessWidget {
             width: width / 2 - (width / 2) / 10,
             height: 100,
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(8.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
-                      fontSize: 25,
+                    style: TextStyle(
+                      fontSize: (20 * (13/name.length)) > 25 ? 25 : (20 * (13/name.length)),
                       fontWeight: FontWeight.bold,
                     ),
                   ),

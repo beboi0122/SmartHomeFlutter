@@ -4,27 +4,28 @@ import 'package:flutter/material.dart';
 
 import '../services/database.dart';
 
-class BindingCardWidget extends StatefulWidget {
+class EletricDoorCardWidget extends StatefulWidget {
   final String roomName;
-  final String bindingName;
+  final String doorName;
   late bool switchState;
   late Map roomState;
   DatabaseService databaseService;
-  BindingCardWidget(
+
+  EletricDoorCardWidget(
       {required this.roomName,
-      required this.bindingName,
-      required this.roomState,
-      required this.databaseService,
-      super.key}) {
+        required this.doorName,
+        required this.roomState,
+        required this.databaseService,
+        super.key}) {
     switchState = roomState["state"]["rooms"][roomName]["functions"]
-        [bindingName]["state"];
+    [doorName]["state"];
   }
 
   @override
-  State<BindingCardWidget> createState() => _BindingCardWidgetState();
+  State<EletricDoorCardWidget> createState() => _EletricDoorCardWidgetState();
 }
 
-class _BindingCardWidgetState extends State<BindingCardWidget> {
+class _EletricDoorCardWidgetState extends State<EletricDoorCardWidget> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -37,7 +38,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
         color: Color.fromARGB(255, 196, 219, 201),
         child: SizedBox(
           width: width - width / 10,
-          height: 200,
+          height: 150,
           child: Center(
             child: Column(
               children: [
@@ -55,7 +56,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            widget.bindingName,
+                            widget.doorName,
                             style: TextStyle(
                               fontSize: 12 * width * 0.005,
                               fontWeight: FontWeight.bold,
@@ -73,7 +74,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                   ),
                   child: SizedBox(
                     width: width - width / 10,
-                    height: 150,
+                    height: 100,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -82,7 +83,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                           Row(
                             children: [
                               Text(
-                                "Blinding status:",
+                                "Door status:",
                                 style: TextStyle(
                                   fontSize: 12 * width * 0.005,
                                   fontWeight: FontWeight.bold,
@@ -91,10 +92,10 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                               const Spacer(),
                               Text(
                                 widget.roomState["state"]["rooms"]
-                                            [widget.roomName]["functions"]
-                                        [widget.bindingName]["state"]
-                                    ? "Up"
-                                    : "Down",
+                                [widget.roomName]["functions"]
+                                [widget.doorName]["state"]
+                                    ? "Open"
+                                    : "Closed",
                                 style: TextStyle(
                                   fontSize: 12 * width * 0.005,
                                   fontWeight: FontWeight.bold,
@@ -117,10 +118,10 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                                 value: widget.switchState,
                                 onChanged: (value) {
                                   setState(
-                                    () {
+                                        () {
                                       widget.switchState = !widget.switchState;
                                       var interrupt =
-                                          "{ \"room\": \"${widget.roomName}\", \"function\": \"${widget.bindingName}\", \"state\": ${widget.switchState}}";
+                                          "{ \"room\": \"${widget.roomName}\", \"function\": \"${widget.doorName}\", \"state\": ${widget.switchState}}";
 
                                       widget.databaseService
                                           .userInterruptCollection
@@ -133,23 +134,6 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                             ],
                           ),
                           const Spacer(),
-                          TextButton(
-                            onPressed: () {
-                              var interrupt =
-                                  "{ \"room\": \"${widget.roomName}\", \"function\": \"${widget.bindingName}\", \"state\": \"RESET\"}";
-
-                              widget.databaseService.userInterruptCollection
-                                  .doc(widget.databaseService.uid)
-                                  .update({"interrupt": interrupt});
-                            },
-                            child: Text(
-                              "Reset to default working",
-                              style: TextStyle(
-                                fontSize: 12 * width * 0.005,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          )
                         ],
                       ),
                     ),

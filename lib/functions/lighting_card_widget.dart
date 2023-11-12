@@ -1,17 +1,25 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
-class LightingCardWidget extends StatefulWidget {
-  final String name;
-  bool lightState = false;
-  Text t = const Text(
-    "OFF",
-    style: TextStyle(
-        fontSize: 12 * 400 * 0.005,
-        fontWeight: FontWeight.bold,
-        color: Colors.red),
-  );
+import '../services/database.dart';
 
-  LightingCardWidget(this.name, {super.key});
+class LightingCardWidget extends StatefulWidget {
+  final String roomName;
+  final String lightingName;
+  late bool switchState;
+  late Map roomState;
+  DatabaseService databaseService;
+
+  LightingCardWidget(
+      {required this.roomName,
+      required this.lightingName,
+      required this.roomState,
+      required this.databaseService,
+      super.key}) {
+    switchState = roomState["state"]["rooms"][roomName]["functions"]
+        [lightingName]["state"];
+  }
 
   @override
   State<LightingCardWidget> createState() => _LightingCardWidgetState();
@@ -30,7 +38,7 @@ class _LightingCardWidgetState extends State<LightingCardWidget> {
         color: Color.fromARGB(255, 196, 219, 201),
         child: SizedBox(
           width: width - width / 10,
-          height: 200,
+          height: 150,
           child: Center(
             child: Column(
               children: [
@@ -48,7 +56,7 @@ class _LightingCardWidgetState extends State<LightingCardWidget> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            widget.name,
+                            widget.lightingName,
                             style: TextStyle(
                               fontSize: 12 * width * 0.005,
                               fontWeight: FontWeight.bold,
@@ -66,7 +74,7 @@ class _LightingCardWidgetState extends State<LightingCardWidget> {
                   ),
                   child: SizedBox(
                     width: width - width / 10,
-                    height: 150,
+                    height: 100,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -82,7 +90,23 @@ class _LightingCardWidgetState extends State<LightingCardWidget> {
                                 ),
                               ),
                               const Spacer(),
-                              widget.t,
+                              widget.roomState["state"]["rooms"]
+                                          [widget.roomName]["functions"]
+                                      [widget.lightingName]["state"]
+                                  ? const Text(
+                                      "ON",
+                                      style: TextStyle(
+                                          fontSize: 12 * 400 * 0.005,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green),
+                                    )
+                                  : const Text(
+                                      "OFF",
+                                      style: TextStyle(
+                                          fontSize: 12 * 400 * 0.005,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red),
+                                    ),
                             ],
                           ),
                           const Spacer(),
@@ -97,31 +121,20 @@ class _LightingCardWidgetState extends State<LightingCardWidget> {
                               ),
                               const Spacer(),
                               Switch(
-                                value: widget.lightState,
+                                value: widget.switchState,
                                 onChanged: (value) {
                                   setState(
                                     () {
-                                      widget.lightState = !widget.lightState;
-                                      if (widget.lightState) {
-                                        widget.t = const Text(
-                                          "ON",
-                                          style: TextStyle(
-                                              fontSize: 12 * 400 * 0.005,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green),
-                                        );
-                                      } else {
-                                        widget.t = const Text(
-                                          "OFF",
-                                          style: TextStyle(
-                                              fontSize: 12 * 400 * 0.005,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.red),
-                                        );
-                                      }
+                                      widget.switchState = !widget.switchState;
+                                      var interrupt =
+                                          "{ \"room\": \"${widget.roomName}\", \"function\": \"${widget.lightingName}\", \"state\": ${widget.switchState}}";
+
+                                      widget.databaseService
+                                          .userInterruptCollection
+                                          .doc(widget.databaseService.uid)
+                                          .update({"interrupt": interrupt});
                                     },
                                   );
-                                  print(widget.lightState);
                                 },
                               )
                             ],

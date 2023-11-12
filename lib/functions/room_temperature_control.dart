@@ -4,27 +4,21 @@ import 'package:flutter/material.dart';
 
 import '../services/database.dart';
 
-class BindingCardWidget extends StatefulWidget {
+class RoomTemperatureControl extends StatefulWidget {
   final String roomName;
-  final String bindingName;
-  late bool switchState;
   late Map roomState;
   DatabaseService databaseService;
-  BindingCardWidget(
+  RoomTemperatureControl(
       {required this.roomName,
-      required this.bindingName,
       required this.roomState,
       required this.databaseService,
-      super.key}) {
-    switchState = roomState["state"]["rooms"][roomName]["functions"]
-        [bindingName]["state"];
-  }
+      super.key});
 
   @override
-  State<BindingCardWidget> createState() => _BindingCardWidgetState();
+  State<RoomTemperatureControl> createState() => _RoomTemperatureControlState();
 }
 
-class _BindingCardWidgetState extends State<BindingCardWidget> {
+class _RoomTemperatureControlState extends State<RoomTemperatureControl> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -37,7 +31,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
         color: Color.fromARGB(255, 196, 219, 201),
         child: SizedBox(
           width: width - width / 10,
-          height: 200,
+          height: 150,
           child: Center(
             child: Column(
               children: [
@@ -55,7 +49,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            widget.bindingName,
+                            "Temperature Controll",
                             style: TextStyle(
                               fontSize: 12 * width * 0.005,
                               fontWeight: FontWeight.bold,
@@ -73,7 +67,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                   ),
                   child: SizedBox(
                     width: width - width / 10,
-                    height: 150,
+                    height: 100,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -82,7 +76,7 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                           Row(
                             children: [
                               Text(
-                                "Blinding status:",
+                                "Temperature:",
                                 style: TextStyle(
                                   fontSize: 12 * width * 0.005,
                                   fontWeight: FontWeight.bold,
@@ -91,10 +85,8 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                               const Spacer(),
                               Text(
                                 widget.roomState["state"]["rooms"]
-                                            [widget.roomName]["functions"]
-                                        [widget.bindingName]["state"]
-                                    ? "Up"
-                                    : "Down",
+                                        [widget.roomName]["temperature"]
+                                    .toString(),
                                 style: TextStyle(
                                   fontSize: 12 * width * 0.005,
                                   fontWeight: FontWeight.bold,
@@ -106,50 +98,42 @@ class _BindingCardWidgetState extends State<BindingCardWidget> {
                           Row(
                             children: [
                               Text(
-                                "Switch:",
+                                "Target temperature:",
                                 style: TextStyle(
                                   fontSize: 12 * width * 0.005,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const Spacer(),
-                              Switch(
-                                value: widget.switchState,
-                                onChanged: (value) {
-                                  setState(
-                                    () {
-                                      widget.switchState = !widget.switchState;
-                                      var interrupt =
-                                          "{ \"room\": \"${widget.roomName}\", \"function\": \"${widget.bindingName}\", \"state\": ${widget.switchState}}";
-
-                                      widget.databaseService
-                                          .userInterruptCollection
-                                          .doc(widget.databaseService.uid)
-                                          .update({"interrupt": interrupt});
-                                    },
+                              DropdownButton<String>(
+                                menuMaxHeight: 300,
+                                isDense: true,
+                                value: widget.roomState["state"]["rooms"]
+                                        [widget.roomName]["target_temperature"]
+                                    .toString(),
+                                style: TextStyle(
+                                    fontSize: 12 * width * 0.005,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                                items: List<String>.generate(
+                                        41, (i) => (i + 5).toString())
+                                    .map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
                                   );
+                                }).toList(),
+                                onChanged: (value) {
+                                  var interrupt =
+                                      "{ \"room\": \"${widget.roomName}\", \"target_temperature\": \"${int.parse(value!)}\"}";
+                                  widget.databaseService.userInterruptCollection
+                                      .doc(widget.databaseService.uid)
+                                      .update({"interrupt": interrupt});
                                 },
                               )
                             ],
                           ),
                           const Spacer(),
-                          TextButton(
-                            onPressed: () {
-                              var interrupt =
-                                  "{ \"room\": \"${widget.roomName}\", \"function\": \"${widget.bindingName}\", \"state\": \"RESET\"}";
-
-                              widget.databaseService.userInterruptCollection
-                                  .doc(widget.databaseService.uid)
-                                  .update({"interrupt": interrupt});
-                            },
-                            child: Text(
-                              "Reset to default working",
-                              style: TextStyle(
-                                fontSize: 12 * width * 0.005,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          )
                         ],
                       ),
                     ),

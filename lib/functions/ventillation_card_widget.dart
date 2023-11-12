@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-class VentillationCardWidget extends StatefulWidget {
-  final String name;
-  Text t = const Text(
-    "OFF",
-    style: TextStyle(
-        fontSize: 12 * 400 * 0.005,
-        fontWeight: FontWeight.bold,
-        color: Colors.red),
-  );
+import '../services/database.dart';
 
-  VentillationCardWidget(this.name, {super.key});
+class VentillationCardWidget extends StatefulWidget {
+  final String roomName;
+  late Map roomState;
+  DatabaseService databaseService;
+  VentillationCardWidget(
+      {required this.roomName,
+      required this.roomState,
+      required this.databaseService,
+      super.key});
 
   @override
   State<VentillationCardWidget> createState() => _VentillationCardWidgetState();
@@ -29,7 +29,7 @@ class _VentillationCardWidgetState extends State<VentillationCardWidget> {
         color: Color.fromARGB(255, 196, 219, 201),
         child: SizedBox(
           width: width - width / 10,
-          height: 200,
+          height: 150,
           child: Center(
             child: Column(
               children: [
@@ -47,7 +47,7 @@ class _VentillationCardWidgetState extends State<VentillationCardWidget> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            widget.name,
+                            "Ventillation",
                             style: TextStyle(
                               fontSize: 12 * width * 0.005,
                               fontWeight: FontWeight.bold,
@@ -65,7 +65,7 @@ class _VentillationCardWidgetState extends State<VentillationCardWidget> {
                   ),
                   child: SizedBox(
                     width: width - width / 10,
-                    height: 150,
+                    height: 100,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -74,28 +74,61 @@ class _VentillationCardWidgetState extends State<VentillationCardWidget> {
                           Row(
                             children: [
                               Text(
-                                "Ventillation",
+                                "Humidity:",
                                 style: TextStyle(
                                   fontSize: 12 * width * 0.005,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const Spacer(),
-                              widget.t,
+                              Text(
+                                widget.roomState["state"]["rooms"]
+                                        [widget.roomName]["humidity"]
+                                    .toString(),
+                                style: TextStyle(
+                                  fontSize: 12 * width * 0.005,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                           const Spacer(),
                           Row(
                             children: [
                               Text(
-                                "Switch:",
+                                "Target humidity:",
                                 style: TextStyle(
                                   fontSize: 12 * width * 0.005,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const Spacer(),
-                              Text("Placeholder")
+                              DropdownButton<String>(
+                                menuMaxHeight: 300,
+                                isDense: true,
+                                value: widget.roomState["state"]["rooms"]
+                                        [widget.roomName]["target_humidity"]
+                                    .toString(),
+                                style: TextStyle(
+                                    fontSize: 12 * width * 0.005,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                                items: List<String>.generate(
+                                        60, (i) => (i + 20).toString())
+                                    .map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  var interrupt =
+                                      "{ \"room\": \"${widget.roomName}\", \"target_humidity\": \"${int.parse(value!)}\"}";
+                                  widget.databaseService.userInterruptCollection
+                                      .doc(widget.databaseService.uid)
+                                      .update({"interrupt": interrupt});
+                                },
+                              )
                             ],
                           ),
                           const Spacer(),
